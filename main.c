@@ -20,7 +20,6 @@
 int PIDStatus;
 int status;
 bool running = true;
-char command[MAX_INPUT] = "";
 
 
 void start_shell();
@@ -40,11 +39,12 @@ int main() {
 
 void start_shell(){
 
-
+    char *builtInCommands[MAX_INPUT] = {"quit", "version", "/[Pfadname]", "help", ""};
+    char params[MAX_INPUT];
 
     while(running) {
         type_prompt();
-        read_command();
+        read_command(&command, &params);
         printf("command: %s \n", command);
         PIDStatus = fork();
         if (PIDStatus < 0) {
@@ -54,9 +54,9 @@ void start_shell(){
         if (PIDStatus > 0) {
             waitpid(PIDStatus, &status, 0);
         }
-        //else {
-       //	execve(command, 0);
-        //}
+        else {
+            execve(command, params, 0);
+        }
     }
 }
 
@@ -80,6 +80,8 @@ int type_prompt() {
 void read_command() {
     fgets(command, MAX_INPUT, stdin);
     strtok(command,"\n");
+
+
 }
 
 void quit(){
