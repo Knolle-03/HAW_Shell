@@ -12,25 +12,28 @@
 #include <string.h>
 #include <stdbool.h>
 
+
 #define MAX_INPUT 30
 #define VERSION 1.0
 #define AUTOREN "Lennart Draeger und Sven Reymann"
-
+#define NUMBER_OF_BUILT_IN_COMMANDS 3
 
 int PIDStatus;
 int status;
 bool running = true;
 
-
+bool ampersand_set(char *command);
+void exec_command(int buildInCom, char *command, char *params);
 void start_shell();
 void show_help();
 int type_prompt();
+int starts_with_slash(char *command);
 void read_command(char command[MAX_INPUT]);
 void quit();
 void version();
 void change_directory(char *command);
 void execBuildIn(int i, char *command);
-int in(char **builtInCommands, int length, char *command);
+int in(char *command);
 
 
 int main() {
@@ -44,52 +47,42 @@ void start_shell(){
     char params[MAX_INPUT];
 
 
-    char *builtInCommands[MAX_INPUT] = {"quit", "version", "help","/\\.*"};
+
+
 
     while(running) {
         type_prompt();
         read_command(command);
-        int builtInCom = in(builtInCommands, 4, command);
-        //printf("%d", builtInCom);
-        if (builtInCom != -1) {
-            execBuildIn(builtInCom, command);
-        } else {
-            PIDStatus = fork();
-            if (PIDStatus < 0) {
-                printf("Unable to fork");
-                continue;
-            }
-            u_long length;
-            char* pos;
-            length = strlen(command - 1);
-            pos = command + length - 1;
-            printf("command: %s\n",command);
-            printf("last char: %c\n", *pos);
-            if (command[strlen(command - 1)] != '&') {
-                //printf("%c\n", command[(strlen(command - 1))]);
-                if (PIDStatus > 0) {
-                    waitpid(PIDStatus, &status, 0);
-                }
-                else {
-                    execlp(command, params, 0);
-                    exit(0);
-                }
-            } else {
-                //printf("&\n");
-                if (PIDStatus == 0) {
-                    command[strlen(command - 1)] = 0;
-                    //printf("%s",command);
-                    execlp(command, params, 0);
-                    exit(0);
-                }
-            }
-
+        bool ampersandIsSet = ampersand_set(command);
+        int builtInCom = in(command);
+        if (starts_with_slash(command) == 4) {
+            builtInCom = 4;
+        }
+        if (builtInCom == 0) {
+            quit();
+            continue;
+        }
+        PIDStatus = fork();
+        if (PIDStatus < 0) {
+            printf("Unable to fork");
+            continue;
         }
 
-        //&& command[strlen(command) - 1] != '&'
-
+        if (!ampersandIsSet) {
+            if (PIDStatus > 0) {
+                waitpid(PIDStatus, &status, 0);
+            }
+            else {
+                exec_command(builtInCom,command, params);
+            }
+        } else {
+            if (PIDStatus == 0) {
+                exec_command(builtInCom, command, params);
+            }
+        }
     }
 }
+
 
 // This function shows the help text for this shell
 void show_help(){
@@ -101,27 +94,64 @@ void show_help(){
     printf("%15s %s\n", "Help", "Anzeige der möglichen Built-In-Befehle mit Kurzbeschreibung");
 }
 
+bool ampersand_set(char *command) {
+    u_long length;
+    char* pos;
+    length = strlen(command);
+    pos = command + length - 1;
+    if (*pos == '&'){
+        *pos = '\0';
+        return true;
+    }
+    return false;
+}
+
+
 int type_prompt() {
     char cwd[1024];
     printf("%s -> Was möchten Sie tun, %s?\n", getcwd(cwd, sizeof(cwd)), getenv("USER"));
     return 0;
 }
 
+void exec_command(int buildInCom, char *command, char *params) {
+    //printf("in exec\nbuiltInCom: %d\ncommand: %s\n", buildInCom, command);
+
+    if (buildInCom != -1) {
+        execBuildIn(buildInCom, command);
+        exit(0);
+    } else {
+        int retVal = execlp(command, params, 0);
+        if (retVal < 0) {
+            printf("command: %s not found.\n", command);
+            exit(-1);
+        }
+        exit(0);
+    }
+}
+
+int starts_with_slash(char *command) {
+    //printf("in start_with_slash\n");
+
+    char* pos;
+    pos = command;
+    if (*pos == '/') {
+        //printf("true\n");
+        return 4;
+    }
+    return -1;
+}
+
 
 void read_command(char command[MAX_INPUT]) {
-
     fgets(command, MAX_INPUT, stdin);
     strtok(command, "\n");
-
-
-
 }
 
 
 
-int in(char **builtInCommands, int length, char *command) {
-
-    for (int i = 0; i < length; i++) {
+int in(char *command) {
+    char *builtInCommands[MAX_INPUT] = {"quit", "version", "help"};
+    for (int i = 0; i < NUMBER_OF_BUILT_IN_COMMANDS; i++) {
         if (strcmp(builtInCommands[i], command) == 0) {
             return i;
         }
@@ -150,6 +180,10 @@ void version(){
 }
 
 void change_directory(char *command){
-    printf("in change_dir\n");
-    chdir(command);
+    //printf("in change_dir\n");
+    int retVal = chdir(command);
+
+    if (retVal < 0) {
+        printf("dir: %s not found\n", command);
+    }
 }
