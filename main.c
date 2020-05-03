@@ -25,7 +25,7 @@ bool running = true;
 void start_shell();
 void show_help();
 int type_prompt();
-void read_command(char command[MAX_INPUT], char **params);
+void read_command(char command[MAX_INPUT]);
 void quit();
 void version();
 void change_directory(char *command);
@@ -41,20 +41,18 @@ int main() {
 void start_shell(){
 
     char command[MAX_INPUT];
-    char **params[MAX_INPUT];
 
 
     char *builtInCommands[MAX_INPUT] = {"quit", "version", "help","/\\*"};
 
     while(running) {
         type_prompt();
-        read_command(command, params);
+        read_command(command);
         int builtInCom = in(builtInCommands, 4, command);
+        printf("%d", builtInCom);
         if (builtInCom != -1) {
-            printf("built in command");
             execBuildIn(builtInCom, command);
         } else {
-            printf("command: %s \n", command);
             PIDStatus = fork();
             if (PIDStatus < 0) {
                 printf("Unable to fork");
@@ -64,7 +62,7 @@ void start_shell(){
                 waitpid(PIDStatus, &status, 0);
             }
             else {
-                execvp(command, params);
+                execlp(command, 0);
             }
         }
 
@@ -84,29 +82,19 @@ void show_help(){
 }
 
 int type_prompt() {
-    char cwd[100];
-    printf("%s -> Was möchten Sie tun, %s?\n", getcwd(cwd, 100), getenv("USER"));
+    char cwd[1024];
+    printf("%s -> Was möchten Sie tun, %s?\n", getcwd(cwd, sizeof(cwd)), getenv("USER"));
     return 0;
 }
 
 
-void read_command(char command[MAX_INPUT], char **params) {
-    char line[1024];
-    char * pch;
-    int i = 0;
+void read_command(char command[MAX_INPUT]) {
+
+    fgets(command, MAX_INPUT, stdin);
+    strtok(command, "\n");
 
 
-    fgets(line, MAX_INPUT, stdin);
 
-    pch = strtok(line," ");
-    size_t length = line - pch;
-    strncpy(command, line, length);
-
-
-    while (pch != NULL) {
-        pch = strtok(NULL, " ");
-        strcpy(&params[i++][0], pch);
-    }
 }
 
 
