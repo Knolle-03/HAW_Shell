@@ -41,6 +41,7 @@ int main() {
 void start_shell(){
 
     char command[MAX_INPUT];
+    char params[MAX_INPUT];
 
 
     char *builtInCommands[MAX_INPUT] = {"quit", "version", "help","/\\.*"};
@@ -58,15 +59,34 @@ void start_shell(){
                 printf("Unable to fork");
                 continue;
             }
-            if (PIDStatus > 0 && command[strlen(command) - 1] != '&') {
-                waitpid(PIDStatus, &status, 0);
+            u_long length;
+            char* pos;
+            length = strlen(command - 1);
+            pos = command + length - 1;
+            printf("command: %s\n",command);
+            printf("last char: %c\n", *pos);
+            if (command[strlen(command - 1)] != '&') {
+                //printf("%c\n", command[(strlen(command - 1))]);
+                if (PIDStatus > 0) {
+                    waitpid(PIDStatus, &status, 0);
+                }
+                else {
+                    execlp(command, params, 0);
+                    exit(0);
+                }
+            } else {
+                //printf("&\n");
+                if (PIDStatus == 0) {
+                    command[strlen(command - 1)] = 0;
+                    //printf("%s",command);
+                    execlp(command, params, 0);
+                    exit(0);
+                }
             }
-            else {
-                execlp(command, 0);
-            }
+
         }
 
-
+        //&& command[strlen(command) - 1] != '&'
 
     }
 }
