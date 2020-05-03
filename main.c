@@ -43,13 +43,13 @@ void start_shell(){
     char command[MAX_INPUT];
 
 
-    char *builtInCommands[MAX_INPUT] = {"quit", "version", "help","/\\*"};
+    char *builtInCommands[MAX_INPUT] = {"quit", "version", "help","/\\.*"};
 
     while(running) {
         type_prompt();
         read_command(command);
         int builtInCom = in(builtInCommands, 4, command);
-        printf("%d", builtInCom);
+        //printf("%d", builtInCom);
         if (builtInCom != -1) {
             execBuildIn(builtInCom, command);
         } else {
@@ -58,7 +58,7 @@ void start_shell(){
                 printf("Unable to fork");
                 continue;
             }
-            if (PIDStatus > 0) {
+            if (PIDStatus > 0 && command[strlen(command) - 1] != '&') {
                 waitpid(PIDStatus, &status, 0);
             }
             else {
