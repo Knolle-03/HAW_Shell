@@ -85,12 +85,12 @@ void start_shell(){
 
 // This function shows the help text for this shell
 void show_help(){
-    printf("%15s %s\n", "Name des Befehls:", "Beschreibung:");
-    printf("%15s %s\n", "Quit", "Beenden der HAW-Shell");
-    printf("%15s %s\n", "version", "Anzeige des Autors und der Versionsnummer der HAW-Shell");
-    printf("%15s %s\n", "/[Pfadname]", "Wechsel des aktuellen Arbeitsverzeichnisses (analog zu cd)."
-                                     " Es muss immer ein kompletter Pfadname eingegeben werden");
-    printf("%15s %s\n", "Help", "Anzeige der möglichen Built-In-Befehle mit Kurzbeschreibung");
+    printf("%17s     %s\n", "Name des Befehls:", "Beschreibung:");
+    printf("---------------------------------------------------\n");
+    printf("%17s     %s\n", "Quit:", "Beenden der HAW-Shell");
+    printf("%17s     %s\n", "version:", "Anzeige des Autors und der Versionsnummer der HAW-Shell");
+    printf("%17s     %s\n", "/[Pfadname]:", "Wechsel des aktuellen Arbeitsverzeichnisses (analog zu cd). Es muss immer ein kompletter Pfadname eingegeben werden.");
+    printf("%17s     %s\n\n", "Help:", "Anzeige der möglichen Built-In-Befehle mit Kurzbeschreibung");
 }
 
 bool ampersand_set(char *command) {
