@@ -45,11 +45,7 @@ void start_shell(){
 
     char command[MAX_INPUT];
     char params[MAX_INPUT];
-
-
-
-
-
+    
     while(running) {
         type_prompt();
         read_command(command);
@@ -60,6 +56,9 @@ void start_shell(){
         }
         if (builtInCom == 0) {
             quit();
+            continue;
+        } else if (builtInCom == 4) {
+            change_directory(command);
             continue;
         }
         PIDStatus = fork();
@@ -109,7 +108,7 @@ bool ampersand_set(char *command) {
 
 int type_prompt() {
     char cwd[1024];
-    printf("%s -> Was möchten Sie tun, %s?\n", getcwd(cwd, sizeof(cwd)), getenv("USER"));
+    printf("%s -> Was möchten Sie tun, %s? ", getcwd(cwd, sizeof(cwd)), getenv("USER"));
     return 0;
 }
 
